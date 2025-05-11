@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jolly LLB Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        .chat-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            max-width: 80%;
+        }
+        .user-message {
+            justify-content: flex-end;
+        }
+        .user-message .message-content {
+            background-color: #dcf8c6;
+            color: #111827;
+            border-top-right-radius: 0.25rem;
+        }
+        .bot-message {
+            justify-content: flex-start;
+        }
+        .bot-message .message-content {
+            background-color: #f3f4f6;
+            color: #111827;
+            border-top-left-radius: 0.25rem;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .input-field {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            border: 1px solid #e0e0e0;
+            margin-right: 1rem;
+            font-size: 1rem;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .send-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 1.25rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+            display: flex;
+            align-items: center;
+        }
+        .send-button:hover {
+            background-color: #2563eb;
+        }
+        .send-button-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-left: 0.5rem;
+        }
+        @media (max-width: 640px) {
+            .chat-container {
+                margin: 1rem;
+                padding: 1rem;
+                border-radius: 0.75rem;
+            }
+            .input-field {
+                border-radius: 0.75rem;
+                margin-right: 0.5rem;
+            }
+            .send-button {
+                border-radius: 0.75rem;
+                padding: 0.75rem 1rem;
+            }
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1 class="text-2xl font-semibold text-gray-800">Jolly LLB Chatbot</h1>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            </div>
+        <div class="input-container">
+            <input
+                type="text"
+                id="message-input"
+                placeholder="Type your message..."
+                class="input-field"
+            />
+            <button class="send-button" id="send-button">
+                Send
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="send-button-icon">
+                    <path d="M3.105 2.29a.75.75 0 0 0-.114 1.02L8.73 8.327l7.91-7.9a.75.75 0 0 0 1.02.114l2.21 7.303a.75.75 0 0 0-.524 1.325L9.902 12.1a.75.75 0 0 0-.757 0L2.573 8.86a.75.75 0 0 0 0-1.506l7.157-1.432a.75.75 0 0 0 .659-.12L17.27 5.79a.75.75 0 0 0 .29-1.263l-9.2-6.9a.75.75 0 0 0-1.018.371L2.39 5.745a.75.75 0 0 0-.036.363v7.812a.75.75 0 0 0 .216.53l2.805 2.806a.75.75 0 0 0 1.06-1.06l-2.3-2.3H6.75a.75.75 0 0 0 0-1.5H4.992l1.531-1.532a.75.75 0 0 0-.12-1.019l-2.73-2.73Z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        function addMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+
+            const messageContentElement = document.createElement('div');
+            messageContentElement.classList.add('message-content');
+            messageContentElement.textContent = message;
+
+            messageElement.appendChild(messageContentElement);
+            chatMessages.appendChild(messageElement);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleSendMessage() {
+            const messageText = messageInput.value.trim();
+
+            if (messageText === '') return;
+
+            addMessage('user', messageText);
+            messageInput.value = '';
+
+            fetch('chatbot_api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(messageText)}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error from server:', data.error);
+                    addMessage('bot', "Sorry, there was an error: " + data.error);
+                } else {
+                    const botResponse = data.response;
+                    addMessage('bot', botResponse);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('bot', "Sorry, I'm having trouble connecting to the server.");
+            });
+        }
+
+        sendButton.addEventListener('click', handleSendMessage);
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
